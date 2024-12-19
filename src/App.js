@@ -1,22 +1,44 @@
-import logo from './logo.svg';
-import './App.css';
+import { useState } from "react";
+import logo from "./logo.svg";
+import "./App.css";
+import FaceRecognition from "./FaceRecognition";
+import FaceRecognitionModel from "./FaceRecognitionModel";
 
 function App() {
+  const [image, setImage] = useState(null);
+
+  const faceRecognitionModel = new FaceRecognitionModel();
+
+  function handleImageChange(e) {
+    const file = e.target.files ? e.target.files[0] : null;
+
+    // if (file && file.size <= 5 * 1024 * 1024) {
+    // Check if file size is <= 5MB
+    const blobUrl = URL.createObjectURL(file);
+    setImage(blobUrl);
+    // } else {
+    //   alert("Please select an image less than 5MB.");
+    // }
+  }
+
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        <img
+          id="sample-image"
+          src={image ?? "my_local_proctored_image.png"}
+          className="App-logo"
+          alt="logo"
+        />
+        <div>
+          <label>
+            Upload Image:
+            <input type="file" onChange={(e) => handleImageChange(e)} />
+          </label>
+        </div>
+        <button onClick={() => faceRecognitionModel.detectFace(image)}>
+          Detect Face
+        </button>
       </header>
     </div>
   );
