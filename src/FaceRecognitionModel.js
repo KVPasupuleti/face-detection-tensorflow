@@ -1,51 +1,30 @@
-import "@mediapipe/face_detection";
-import "@tensorflow/tfjs-core";
-// Register WebGL backend.
-import "@tensorflow/tfjs-backend-webgl";
-import * as faceDetection from "@tensorflow-models/face-detection";
+import * as Comlink from "comlink";
 
 class FaceRecognitionModel {
   constructor() {
     this.detector = null;
-    this.createDetector();
+    this.faceRecognitionWorker = null;
+    this.initWorker();
   }
 
-  createDetector = async () => {
-    const model = faceDetection.SupportedModels.MediaPipeFaceDetector;
-
-    const detectorConfig = {
-      runtime: "mediapipe", // or 'tfjs'
-      solutionPath: "https://cdn.jsdelivr.net/npm/@mediapipe/face_detection",
-      modelType: "full"
-    };
-
-    this.detector = await faceDetection.createDetector(model, detectorConfig);
-  };
-
-  detectFace = () => {
-    const faces = this.getFaces();
-
-    console.log(
-      "Faces",
-      faces
-        .then((response) => {
-          console.log("RESPONSE", response);
-          return response;
-        })
-        .then((data) => {
-          console.log("DATA", data);
-        })
+  initWorker = async () => {
+    // Dynamically import the worker
+    const worker = new Worker(
+      new URL("./FaceRecognitionWorker.js", import.meta.url)
     );
+
+    const FaceRecognitionWorkerClass = Comlink.wrap(worker);
+
+    this.faceRecognitionWorker = await new FaceRecognitionWorkerClass();
   };
 
-  getFaces = async () => {
-    const image = document.getElementById("sample-image");
-
-    console.log("this detector", this.detector);
-
-    const faces = await this.detector.estimateFaces(image);
-
-    return faces;
+  detectFace = async (onDetectFaces) => {
+    const img = document.getElementById("sample-image");
+    const bitmap = await createImageBitmap(img);
+    await this.faceRecognitionWorker.detectFace(
+      bitmap,
+      Comlink.proxy(onDetectFaces)
+    );
   };
 }
 

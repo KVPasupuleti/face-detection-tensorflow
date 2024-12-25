@@ -1,13 +1,11 @@
 import { useState } from "react";
-import logo from "./logo.svg";
 import "./App.css";
-import FaceRecognition from "./FaceRecognition";
-import FaceRecognitionModel from "./FaceRecognitionModel";
 
 function App() {
   const [image, setImage] = useState(null);
-
-  const faceRecognitionModel = new FaceRecognitionModel();
+  const [startDetection, setStartDetection] = useState(false);
+  const [faceRecognitionModel, setFaceRecognitionModel] = useState(null);
+  const [noOfFaces, setNoOfFaces] = useState(0);
 
   function handleImageChange(e) {
     const file = e.target.files ? e.target.files[0] : null;
@@ -20,6 +18,29 @@ function App() {
     //   alert("Please select an image less than 5MB.");
     // }
   }
+
+  const onStartDetection = async () => {
+    const { default: FaceRecognitionModel } = await import(
+      "./FaceRecognitionModel"
+    ); // Dynamically import the class
+
+    const faceRecognitionModel = new FaceRecognitionModel();
+
+    setFaceRecognitionModel(faceRecognitionModel);
+
+    setStartDetection(true);
+  };
+
+  const onClickDetectFace = () => {
+    faceRecognitionModel.detectFace((faces) => {
+      const noOfFaces = faces.length;
+      setNoOfFaces(noOfFaces);
+    });
+  };
+
+  const renderStartDetectionButton = () => {
+    return <button onClick={onClickDetectFace}>Detect Face</button>;
+  };
 
   return (
     <div className="App">
@@ -36,9 +57,12 @@ function App() {
             <input type="file" onChange={(e) => handleImageChange(e)} />
           </label>
         </div>
-        <button onClick={() => faceRecognitionModel.detectFace(image)}>
-          Detect Face
-        </button>
+        {startDetection ? renderStartDetectionButton() : null}
+        {startDetection ? null : (
+          <button onClick={onStartDetection}>Start Detection</button>
+        )}
+
+        <p>No of Faces: {noOfFaces}</p>
       </header>
     </div>
   );
