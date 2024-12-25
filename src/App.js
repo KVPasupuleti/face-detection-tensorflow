@@ -20,11 +20,17 @@ function App() {
   }
 
   const onStartDetection = async () => {
-    const { default: FaceRecognitionModel } = await import(
-      "./FaceRecognitionModel"
+    // const { default: FaceRecognitionModel } = await import(
+    //   "./FaceRecognitionModel"
+    // ); // Dynamically import the class
+
+    // const faceRecognitionModel = new FaceRecognitionModel();
+
+    const { default: FaceRecognitionMediapipeModel } = await import(
+      "./FaceRecognitionMediapipeModel.js"
     ); // Dynamically import the class
 
-    const faceRecognitionModel = new FaceRecognitionModel();
+    const faceRecognitionModel = new FaceRecognitionMediapipeModel();
 
     setFaceRecognitionModel(faceRecognitionModel);
 

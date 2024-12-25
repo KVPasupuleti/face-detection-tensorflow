@@ -1,6 +1,4 @@
-import * as Comlink from "comlink";
-
-class FaceRecognitionWorker {
+class FaceRecognitionMediapipeModel {
   constructor() {
     this.detector = null;
     this.createDetector();
@@ -30,31 +28,30 @@ class FaceRecognitionWorker {
     try {
       // Load required scripts from CDN
       await Promise.all([
-        this.loadScriptsWithImport(
-          "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"
+        this.loadScript(
+          "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core@4.22.0/dist/tf-core.min.js"
         ),
-        this.loadScriptsWithImport(
+        this.loadScript(
           "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl@4.22.0/dist/tf-backend-webgl.min.js"
         ),
-        this.loadScriptsWithImport(
-          "https://cdn.jsdelivr.net/npm/@tensorflow-models/face-detection@1.0.3/dist/face-detection.js"
+        this.loadScript(
+          "https://cdn.jsdelivr.net/npm/@tensorflow-models/face-detection"
         ),
-        this.loadScriptsWithImport(
-          "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter@4.22.0/dist/tf-converter.min.js"
+        this.loadScript(
+          "https://cdn.jsdelivr.net/npm/@mediapipe/face_detection"
         )
       ]);
 
-      //eslint-disable-next-line
-      const model = self.faceDetection.SupportedModels.MediaPipeFaceDetector;
+      const model = window.faceDetection.SupportedModels.MediaPipeFaceDetector;
 
       const detectorConfig = {
-        runtime: "tfjs",
-        maxFaces: 1
+        runtime: "mediapipe",
+        solutionPath: "https://cdn.jsdelivr.net/npm/@mediapipe/face_detection",
+        modelType: "full"
       };
 
       try {
-        //eslint-disable-next-line
-        this.detector = await self.faceDetection.createDetector(
+        this.detector = await window.faceDetection.createDetector(
           model,
           detectorConfig
         );
@@ -66,15 +63,12 @@ class FaceRecognitionWorker {
     }
   };
 
-  detectFace = async (imageBitmap, onDetectFaces) => {
-    const estimationConfig = { flipHorizontal: false };
-    const faces = await this.detector.estimateFaces(
-      imageBitmap,
-      estimationConfig
-    );
+  detectFace = async (onDetectFaces) => {
+    const image = document.getElementById("sample-image");
+    const faces = await this.detector.estimateFaces(image);
     console.log("FACES", faces);
     onDetectFaces(faces);
   };
 }
 
-Comlink.expose(FaceRecognitionWorker);
+export default FaceRecognitionMediapipeModel;
